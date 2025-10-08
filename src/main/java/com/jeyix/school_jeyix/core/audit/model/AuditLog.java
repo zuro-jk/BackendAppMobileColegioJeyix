@@ -1,0 +1,36 @@
+package com.jeyix.school_jeyix.core.audit.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "audit_logs")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class AuditLog {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String entityName;
+    private Long entityId;
+    private String action;
+
+    @Column(columnDefinition = "TEXT")
+    private String oldValue;
+
+    @Column(columnDefinition = "TEXT")
+    private String newValue;
+
+    private Long userId;
+    private String username;
+
+    private LocalDateTime timestamp;
+
+}
