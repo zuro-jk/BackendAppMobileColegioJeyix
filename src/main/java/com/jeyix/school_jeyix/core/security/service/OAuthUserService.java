@@ -1,5 +1,15 @@
 package com.jeyix.school_jeyix.core.security.service;
 
+import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.jeyix.school_jeyix.core.aws.service.FileService;
 import com.jeyix.school_jeyix.core.security.dto.AuthResponse;
 import com.jeyix.school_jeyix.core.security.dto.UserProfileResponse;
@@ -11,19 +21,11 @@ import com.jeyix.school_jeyix.core.security.model.User;
 import com.jeyix.school_jeyix.core.security.repository.RefreshTokenRepository;
 import com.jeyix.school_jeyix.core.security.repository.RoleRepository;
 import com.jeyix.school_jeyix.core.security.repository.UserRepository;
-import com.jeyix.school_jeyix.features.customers.model.Customer;
-import com.jeyix.school_jeyix.features.customers.repository.CustomerRepository;
+import com.jeyix.school_jeyix.features.parent.dto.parent.request.ParentRequest;
+import com.jeyix.school_jeyix.features.parent.service.ParentService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.Instant;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,15 +37,15 @@ public class OAuthUserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final CustomerRepository customerRepository;
+    private final ParentService parentService;
     private final RefreshTokenRepository refreshTokenRepository;
     private final FileService fileService;
     private final JwtService jwtService;
 
     @Transactional
     public AuthResponse processOAuthUser(String provider, String providerId,
-                                         String email, String firstName, String lastName,
-                                         Boolean emailVerified, String profileImageUrl) {
+            String email, String firstName, String lastName,
+            Boolean emailVerified, String profileImageUrl) {
 
         String normalizedEmail = email.toLowerCase();
 
@@ -183,10 +185,11 @@ public class OAuthUserService {
 
         User savedUser = userRepository.save(user);
 
-        Customer customer = Customer.builder()
-                .user(savedUser)
+        ParentRequest parent = ParentRequest.builder()
+                .userId(user.getId())
                 .build();
-        customerRepository.save(customer);
+
+        parentService.create(parent);
 
         log.info("Nuevo usuario OAuth creado: {} (provider={})", email, provider);
 

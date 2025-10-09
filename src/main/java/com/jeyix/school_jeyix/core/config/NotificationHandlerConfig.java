@@ -1,5 +1,6 @@
 package com.jeyix.school_jeyix.core.config;
 
+import com.jeyix.school_jeyix.features.notifications.dto.ContactNotificationEvent;
 import com.jeyix.school_jeyix.features.notifications.dto.EmailVerificationEvent;
 import com.jeyix.school_jeyix.features.notifications.dto.NotifiableEvent;
 import com.jeyix.school_jeyix.features.notifications.services.EmailNotificationService;
@@ -20,6 +21,7 @@ public class NotificationHandlerConfig {
 
         Map<String, NotificationHandler<? extends NotifiableEvent>> emailHandlers = new HashMap<>();
         emailHandlers.put(EmailVerificationEvent.class.getSimpleName(), emailService);
+        emailHandlers.put(ContactNotificationEvent.class.getSimpleName(), emailService);
 
         handlers.put("EMAIL", emailHandlers);
 

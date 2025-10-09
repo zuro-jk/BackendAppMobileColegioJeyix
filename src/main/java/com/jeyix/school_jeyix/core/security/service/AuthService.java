@@ -1,22 +1,17 @@
 package com.jeyix.school_jeyix.core.security.service;
 
-import com.jeyix.school_jeyix.core.aws.service.FileService;
-import com.jeyix.school_jeyix.core.exceptions.*;
-import com.jeyix.school_jeyix.core.security.dto.*;
-import com.jeyix.school_jeyix.core.security.enums.AuthProvider;
-import com.jeyix.school_jeyix.core.security.jwt.JwtService;
-import com.jeyix.school_jeyix.core.security.model.RefreshToken;
-import com.jeyix.school_jeyix.core.security.model.Role;
-import com.jeyix.school_jeyix.core.security.model.User;
-import com.jeyix.school_jeyix.core.security.repository.RefreshTokenRepository;
-import com.jeyix.school_jeyix.core.security.repository.RoleRepository;
-import com.jeyix.school_jeyix.core.security.repository.UserRepository;
-import com.jeyix.school_jeyix.features.customers.dto.customer.request.CustomerRequest;
-import com.jeyix.school_jeyix.features.customers.service.CustomerService;
-import com.jeyix.school_jeyix.features.notifications.dto.EmailVerificationEvent;
-import com.jeyix.school_jeyix.features.notifications.kafka.NotificationProducer;
-import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,11 +20,34 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+import com.jeyix.school_jeyix.core.aws.service.FileService;
+import com.jeyix.school_jeyix.core.exceptions.EmailAlreadyExistsException;
+import com.jeyix.school_jeyix.core.exceptions.InvalidCredentialsException;
+import com.jeyix.school_jeyix.core.exceptions.InvalidRefreshTokenException;
+import com.jeyix.school_jeyix.core.exceptions.InvalidVerificationCodeException;
+import com.jeyix.school_jeyix.core.exceptions.TooManyAttemptsException;
+import com.jeyix.school_jeyix.core.exceptions.UserNotFoundException;
+import com.jeyix.school_jeyix.core.exceptions.UsernameAlreadyExistsException;
+import com.jeyix.school_jeyix.core.security.dto.AuthResponse;
+import com.jeyix.school_jeyix.core.security.dto.LoginRequest;
+import com.jeyix.school_jeyix.core.security.dto.RegisterRequest;
+import com.jeyix.school_jeyix.core.security.dto.UserProfileResponse;
+import com.jeyix.school_jeyix.core.security.dto.UserSessionResponse;
+import com.jeyix.school_jeyix.core.security.enums.AuthProvider;
+import com.jeyix.school_jeyix.core.security.jwt.JwtService;
+import com.jeyix.school_jeyix.core.security.model.RefreshToken;
+import com.jeyix.school_jeyix.core.security.model.Role;
+import com.jeyix.school_jeyix.core.security.model.User;
+import com.jeyix.school_jeyix.core.security.repository.RefreshTokenRepository;
+import com.jeyix.school_jeyix.core.security.repository.RoleRepository;
+import com.jeyix.school_jeyix.core.security.repository.UserRepository;
+import com.jeyix.school_jeyix.features.notifications.dto.EmailVerificationEvent;
+import com.jeyix.school_jeyix.features.notifications.kafka.NotificationProducer;
+import com.jeyix.school_jeyix.features.parent.dto.parent.request.ParentRequest;
+import com.jeyix.school_jeyix.features.parent.service.ParentService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +67,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final TokenBlacklistService tokenBlacklistService;
     private final FileService fileService;
-    private final CustomerService customerService;
+    private final ParentService parentService;
 
     private final NotificationProducer notificationProducer;
 
@@ -118,7 +136,7 @@ public class AuthService {
             throw new EmailAlreadyExistsException("Email ya existe");
         }
 
-        Role defaultRole = roleRepository.findByName("ROLE_CLIENT")
+        Role defaultRole = roleRepository.findByName("ROLE_PARENT")
                 .orElseThrow(() -> new RuntimeException("Rol cliente no encontrado"));
 
         User user = User.builder()
@@ -136,12 +154,11 @@ public class AuthService {
 
         userRepository.save(user);
 
-        CustomerRequest dto = CustomerRequest.builder()
+        ParentRequest parentRequest = ParentRequest.builder()
                 .userId(user.getId())
-                .points(10)
                 .build();
 
-        customerService.createCustomer(dto);
+        parentService.create(parentRequest);
 
         EmailVerificationEvent event = EmailVerificationEvent.builder()
                 .userId(user.getId())

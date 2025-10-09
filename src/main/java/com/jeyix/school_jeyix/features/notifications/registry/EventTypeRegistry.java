@@ -16,13 +16,14 @@ public class EventTypeRegistry {
 
     @PostConstruct
     public void init() {
-        // Buscar todas las clases que implementan NotifiableEvent en el paquete "dto"
-        Reflections reflections = new Reflections("com.sanisidro.restaurante.features.notifications.dto");
-        Set<Class<? extends NotifiableEvent>> eventClasses = reflections.getSubTypesOf(NotifiableEvent.class);
+        Reflections reflections = new Reflections("com.jeyix.school_jeyix.features.notifications.dto");
 
+        Set<Class<? extends NotifiableEvent>> eventClasses = reflections.getSubTypesOf(NotifiableEvent.class);
         for (Class<? extends NotifiableEvent> clazz : eventClasses) {
             eventTypeMap.put(clazz.getSimpleName(), clazz);
         }
+
+        System.out.println("✅ EventTypeRegistry cargado con: " + eventTypeMap.keySet());
     }
 
     public Class<? extends NotifiableEvent> getEventClass(String eventType) {

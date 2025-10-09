@@ -1,16 +1,18 @@
 package com.jeyix.school_jeyix.core.kafka.consumer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jeyix.school_jeyix.core.kafka.message.KafkaMessage;
-import com.jeyix.school_jeyix.features.notifications.dto.NotifiableEvent;
-import com.jeyix.school_jeyix.features.notifications.facade.NotificationFacade;
-import com.jeyix.school_jeyix.features.notifications.registry.EventTypeRegistry;
-import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jeyix.school_jeyix.core.kafka.message.KafkaMessage;
+import com.jeyix.school_jeyix.features.notifications.dto.NotifiableEvent;
+import com.jeyix.school_jeyix.features.notifications.facade.NotificationFacade;
+import com.jeyix.school_jeyix.features.notifications.registry.EventTypeRegistry;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
