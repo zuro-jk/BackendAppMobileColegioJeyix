@@ -14,6 +14,5 @@ import lombok.NoArgsConstructor;
 public class ParentResponse {
     private Long id;
     private UserSummary user;
-    private String phoneNumber;
-    private List<Long> childrenIds;
+    private List<StudentSummary> children;
 }

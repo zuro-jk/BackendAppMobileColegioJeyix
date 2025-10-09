@@ -102,6 +102,15 @@ app:
     max-size: 15MB
   frontend:
     url: http://localhost:4200
+  android:
+    deeplink:
+      success: myapp://payment/success
+      failure: myapp://payment/failure
+
+myapp:
+  backend:
+    url:
+      notification: https://tu-dominio-publico.com/api/v1/payments/webhook/mercadopago
 
 aws:
   s3:
@@ -112,3 +121,4 @@ aws:
 
 mercadopago:
   access-token: ${MERCADO_PAGO_ACCESS_TOKEN}
+  public-key: ${MERCADO_PAGO_PUBLIC_KEY}

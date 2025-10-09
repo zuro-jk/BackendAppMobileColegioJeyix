@@ -1,10 +1,10 @@
 package com.jeyix.school_jeyix.features.parent.model;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.jeyix.school_jeyix.core.model.Auditable;
 import com.jeyix.school_jeyix.core.security.model.User;
-import com.jeyix.school_jeyix.features.payment.model.Payment;
 import com.jeyix.school_jeyix.features.student.model.Student;
 
 import jakarta.persistence.AttributeOverride;
@@ -39,7 +39,8 @@ public class Parent extends Auditable {
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private List<Student> children;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    private List<Payment> payments;
+    public List<Student> getChildrenSafe() {
+        return children == null ? Collections.emptyList() : children;
+    }
 
 }

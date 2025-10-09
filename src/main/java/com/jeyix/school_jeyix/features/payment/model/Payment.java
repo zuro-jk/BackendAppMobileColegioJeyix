@@ -4,8 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.jeyix.school_jeyix.core.model.Auditable;
-import com.jeyix.school_jeyix.features.parent.model.Parent;
-import com.jeyix.school_jeyix.features.student.model.Student;
+import com.jeyix.school_jeyix.features.enrollment.model.Enrollment;
 
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.Column;
@@ -30,12 +29,8 @@ import lombok.Setter;
 public class Payment extends Auditable {
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "parent_id", nullable = false)
-    private Parent parent;
-
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "student_id", nullable = false)
-    private Student student;
+    @JoinColumn(name = "enrollment_id", nullable = false)
+    private Enrollment enrollment;
 
     private BigDecimal amount;
     private LocalDate dueDate;

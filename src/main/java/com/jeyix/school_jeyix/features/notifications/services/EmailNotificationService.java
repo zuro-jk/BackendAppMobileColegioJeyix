@@ -1,5 +1,10 @@
 package com.jeyix.school_jeyix.features.notifications.services;
 
+import java.time.LocalDateTime;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
 import com.jeyix.school_jeyix.core.email.dto.request.EmailMessageRequest;
 import com.jeyix.school_jeyix.core.email.service.EmailService;
 import com.jeyix.school_jeyix.core.security.model.User;
@@ -14,13 +19,9 @@ import com.jeyix.school_jeyix.features.notifications.repository.EmailNotificatio
 import com.jeyix.school_jeyix.features.notifications.templates.ContactEmailTemplateBuilder;
 import com.jeyix.school_jeyix.features.notifications.templates.EmailTemplateBuilder;
 import com.jeyix.school_jeyix.features.notifications.templates.EmailVerificationTemplateBuilder;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Service("EMAIL")
 @RequiredArgsConstructor
