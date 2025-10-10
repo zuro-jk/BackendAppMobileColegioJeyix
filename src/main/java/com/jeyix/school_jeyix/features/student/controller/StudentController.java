@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +17,7 @@ import com.jeyix.school_jeyix.features.student.dto.student.request.StudentReques
 import com.jeyix.school_jeyix.features.student.dto.student.response.StudentResponse;
 import com.jeyix.school_jeyix.features.student.service.StudentService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -42,9 +44,20 @@ public class StudentController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<StudentResponse>> create(@RequestBody StudentRequest request) {
+    public ResponseEntity<ApiResponse<StudentResponse>> create(@Valid @RequestBody StudentRequest request) {
         return ResponseEntity
                 .ok(new ApiResponse<>(true, "Estudiante creado exitosamente", studentService.create(request)));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<StudentResponse>> update(
+            @PathVariable Long id,
+            @Valid @RequestBody StudentRequest request) {
+
+        StudentResponse updatedStudent = studentService.update(id, request);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Estudiante actualizado exitosamente", updatedStudent));
     }
 
     @DeleteMapping("/{id}")

@@ -15,6 +15,7 @@ import com.jeyix.school_jeyix.features.student.dto.student.response.StudentRespo
 import com.jeyix.school_jeyix.features.student.model.Student;
 import com.jeyix.school_jeyix.features.student.repository.StudentRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -62,6 +63,33 @@ public class StudentService {
         Student student = studentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Estudiante no encontrado"));
         return toResponse(student);
+    }
+
+    @Transactional
+    public StudentResponse update(Long id, StudentRequest request) {
+        Student student = studentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Estudiante con ID " + id + " no encontrado."));
+
+        if (!student.getParent().getId().equals(request.getParentId())) {
+            Parent newParent = parentRepository.findById(request.getParentId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Padre con ID " + request.getParentId() + " no encontrado."));
+            student.setParent(newParent);
+        }
+
+        if (!student.getUser().getId().equals(request.getUserId())) {
+            User newUser = userRepository.findById(request.getUserId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Usuario con ID " + request.getUserId() + " no encontrado."));
+            student.setUser(newUser);
+        }
+
+        student.setGradeLevel(request.getGradeLevel());
+        student.setSection(request.getSection());
+
+        Student updatedStudent = studentRepository.save(student);
+
+        return toResponse(updatedStudent);
     }
 
     @Transactional

@@ -17,6 +17,7 @@ import com.jeyix.school_jeyix.features.teacher.dto.teacher.request.TeacherReques
 import com.jeyix.school_jeyix.features.teacher.dto.teacher.response.TeacherResponse;
 import com.jeyix.school_jeyix.features.teacher.service.TeacherService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -36,14 +37,15 @@ public class TeacherController {
     }
 
     @PostMapping
-    public ResponseEntity<ApiResponse<TeacherResponse>> create(@RequestBody TeacherRequest request) {
+    public ResponseEntity<ApiResponse<TeacherResponse>> create(@Valid @RequestBody TeacherRequest request) {
         return ResponseEntity
                 .ok(new ApiResponse<>(true, "Profesor creado exitosamente", teacherService.create(request)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<TeacherResponse>> update(@PathVariable Long id,
-            @RequestBody TeacherRequest request) {
+    public ResponseEntity<ApiResponse<TeacherResponse>> update(
+            @PathVariable Long id,
+            @Valid @RequestBody TeacherRequest request) {
         return ResponseEntity
                 .ok(new ApiResponse<>(true, "Profesor actualizado exitosamente", teacherService.update(id, request)));
     }

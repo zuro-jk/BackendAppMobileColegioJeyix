@@ -112,9 +112,9 @@ public class AuthService {
 
             RefreshToken refreshToken = createRefreshToken(user, clientIp, userAgent);
 
-            Set<String> roles = user.getRoles().stream()
-                    .map(Role::getName)
-                    .collect(Collectors.toSet());
+            // Set<String> roles = user.getRoles().stream()
+            //         .map(Role::getName)
+            //         .collect(Collectors.toSet());
 
             UserProfileResponse profile = buildUserProfileResponse(user);
 
