@@ -51,7 +51,7 @@ public class AuthController {
         String clientIp = httpRequest.getRemoteAddr();
         String userAgent = httpRequest.getHeader("User-Agent");
 
-        AuthResponse response = authService.refresh(request.getRefreshToken(), clientIp, userAgent);
+        AuthResponse response = authService.refresh(request, clientIp, userAgent);
         return ResponseEntity.ok(new ApiResponse<>(true, "Refresh exitoso", response));
     }
 
@@ -70,7 +70,7 @@ public class AuthController {
         String clientIp = httpRequest.getRemoteAddr();
         String userAgent = httpRequest.getHeader("User-Agent");
 
-        authService.logout(request.getSessionId(), accessToken, clientIp, userAgent);
+        authService.logout(request, accessToken, clientIp, userAgent);
 
         return ResponseEntity.ok(new ApiResponse<>(true, "Logout exitoso", null));
     }

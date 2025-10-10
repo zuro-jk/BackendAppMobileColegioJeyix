@@ -30,7 +30,9 @@ import com.jeyix.school_jeyix.core.exceptions.UserNotFoundException;
 import com.jeyix.school_jeyix.core.exceptions.UsernameAlreadyExistsException;
 import com.jeyix.school_jeyix.core.security.dto.AuthResponse;
 import com.jeyix.school_jeyix.core.security.dto.LoginRequest;
+import com.jeyix.school_jeyix.core.security.dto.RefreshRequest;
 import com.jeyix.school_jeyix.core.security.dto.RegisterRequest;
+import com.jeyix.school_jeyix.core.security.dto.SessionLogoutRequest;
 import com.jeyix.school_jeyix.core.security.dto.UserProfileResponse;
 import com.jeyix.school_jeyix.core.security.dto.UserSessionResponse;
 import com.jeyix.school_jeyix.core.security.enums.AuthProvider;
@@ -118,7 +120,7 @@ public class AuthService {
 
             return new AuthResponse(
                     jwtService.generateAccessToken(user.getUsername(), Collections.emptyMap()),
-                    refreshToken.getId().toString(),
+                    refreshToken.getId(),
                     profile);
 
         } catch (Exception ex) {
@@ -143,7 +145,7 @@ public class AuthService {
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .roles(Collections.singleton(defaultRole))
+                .roles(new java.util.HashSet<>(Collections.singleton(defaultRole)))
                 .enabled(true)
                 .emailVerified(false)
                 .firstName(request.getFirstName())
@@ -184,9 +186,9 @@ public class AuthService {
     }
 
     @Transactional
-    public AuthResponse refresh(String refreshTokenStr, String clientIp, String userAgent) {
-        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenStr)
-                .orElseThrow(() -> new InvalidRefreshTokenException("Refresh token no válido"));
+    public AuthResponse refresh(RefreshRequest request, String clientIp, String userAgent) {
+        RefreshToken refreshToken = refreshTokenRepository.findById(request.getSessionId())
+                .orElseThrow(() -> new InvalidRefreshTokenException("Sesión no válida o no encontrada"));
 
         if (!jwtService.validate(refreshToken.getToken())) {
             refreshTokenRepository.delete(refreshToken);
@@ -203,15 +205,15 @@ public class AuthService {
 
         RefreshToken newRefreshToken = createRefreshToken(user, clientIp, userAgent);
 
-        Set<String> roles = user.getRoles().stream()
-                .map(Role::getName)
-                .collect(Collectors.toSet());
+        // Set<String> roles = user.getRoles().stream()
+        // .map(Role::getName)
+        // .collect(Collectors.toSet());
 
         UserProfileResponse profile = buildUserProfileResponse(user);
 
         return new AuthResponse(
                 newAccessToken,
-                newRefreshToken.getId().toString(),
+                newRefreshToken.getId(),
                 profile);
     }
 
@@ -233,8 +235,8 @@ public class AuthService {
     }
 
     @Transactional
-    public void logout(String sessionId, String accessToken, String clientIp, String userAgent) {
-        RefreshToken refreshToken = refreshTokenRepository.findById(Long.parseLong(sessionId))
+    public void logout(SessionLogoutRequest request, String accessToken, String clientIp, String userAgent) {
+        RefreshToken refreshToken = refreshTokenRepository.findById(request.getSessionId())
                 .orElseThrow(() -> new InvalidRefreshTokenException("Sesión no encontrada"));
 
         refreshTokenRepository.delete(refreshToken);
@@ -322,6 +324,7 @@ public class AuthService {
         }
 
         return UserProfileResponse.builder()
+                .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .enabled(user.isEnabled())

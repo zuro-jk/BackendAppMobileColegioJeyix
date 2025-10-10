@@ -11,7 +11,7 @@ import com.jeyix.school_jeyix.features.parent.model.Parent;
 public interface ParentRepository extends JpaRepository<Parent, Long>{
 
     Optional<Parent> findByUser_Id(Long userId);
-
+    Optional<Parent> findByUser_Username(String username);
     boolean existsByUser_Id(Long userId);
 
 }

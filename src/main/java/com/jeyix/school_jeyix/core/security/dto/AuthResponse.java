@@ -9,6 +9,6 @@ import lombok.Data;
 @Builder
 public class AuthResponse {
     private String accessToken;
-    private String sessionId;
+    private Long sessionId;
     private UserProfileResponse user;
 }

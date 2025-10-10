@@ -113,7 +113,7 @@ public class OAuthUserService {
 
         return AuthResponse.builder()
                 .accessToken(accessToken)
-                .sessionId(refreshTokenEntity.getId().toString())
+                .sessionId(refreshTokenEntity.getId())
                 .user(userProfile)
                 .build();
     }

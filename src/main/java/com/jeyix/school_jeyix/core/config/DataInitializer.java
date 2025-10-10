@@ -1,5 +1,6 @@
 package com.jeyix.school_jeyix.core.config;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -13,11 +14,15 @@ import com.jeyix.school_jeyix.core.security.model.Role;
 import com.jeyix.school_jeyix.core.security.model.User;
 import com.jeyix.school_jeyix.core.security.repository.RoleRepository;
 import com.jeyix.school_jeyix.core.security.repository.UserRepository;
+import com.jeyix.school_jeyix.features.enrollment.dto.enrollment.request.EnrollmentRequest;
+import com.jeyix.school_jeyix.features.enrollment.repository.EnrollmentRepository;
+import com.jeyix.school_jeyix.features.enrollment.service.EnrollmentService;
 import com.jeyix.school_jeyix.features.parent.model.Parent;
 import com.jeyix.school_jeyix.features.parent.repository.ParentRepository;
 import com.jeyix.school_jeyix.features.student.model.Student;
 import com.jeyix.school_jeyix.features.student.repository.StudentRepository;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,12 +37,14 @@ public class DataInitializer implements CommandLineRunner {
         private final PasswordEncoder passwordEncoder;
         private final ParentRepository parentRepository;
         private final StudentRepository studentRepository;
+        private final EnrollmentService enrollmentService;
 
         @Override
         public void run(String... args) throws Exception {
                 initRoles();
                 initAdminUser();
                 initParentsAndStudents();
+                initEnrollments();
         }
 
         private void initRoles() {
@@ -77,6 +84,7 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         private void initParentsAndStudents() {
+
                 if (parentRepository.count() > 0 || studentRepository.count() > 0) {
                         log.info("ℹ️ Datos de prueba (padres y estudiantes) ya existen, se omite creación.");
                         return;
@@ -210,4 +218,52 @@ public class DataInitializer implements CommandLineRunner {
 
                 log.info("✅ Padres, estudiantes y usuarios creados correctamente para entorno dev");
         }
+
+        private void initEnrollments() {
+                if (!enrollmentService.findAll().isEmpty()) {
+                        log.info("ℹ️ Matrículas de prueba ya existen, se omite creación.");
+                        return;
+                }
+
+                log.info(">>> Creando matrículas de prueba...");
+
+                try {
+                        Student student1 = studentRepository.findByUser_Username("student1")
+                                        .orElseThrow(() -> new EntityNotFoundException(
+                                                        "Estudiante de prueba 'student1' no encontrado"));
+
+                        Student student3 = studentRepository.findByUser_Username("student3")
+                                        .orElseThrow(() -> new EntityNotFoundException(
+                                                        "Estudiante de prueba 'student3' no encontrado"));
+
+                        EnrollmentRequest request1 = EnrollmentRequest.builder()
+                                        .studentId(student1.getId())
+                                        .academicYear("2025")
+                                        .totalAmount(new BigDecimal("4500.00"))
+                                        .numberOfInstallments(10)
+                                        .build();
+
+                        enrollmentService.create(request1);
+                        log.info("-> Matrícula creada para: {} {}",
+                                        student1.getUser().getFirstName(), student1.getUser().getLastName());
+
+                        EnrollmentRequest request2 = EnrollmentRequest.builder()
+                                        .studentId(student3.getId())
+                                        .academicYear("2025")
+                                        .totalAmount(new BigDecimal("6000.00"))
+                                        .numberOfInstallments(12)
+                                        .build();
+
+                        enrollmentService.create(request2);
+                        log.info("-> Matrícula creada para: {} {}",
+                                        student3.getUser().getFirstName(), student3.getUser().getLastName());
+
+                        log.info("✅ Matrículas de prueba creadas correctamente.");
+
+                } catch (Exception e) {
+                        log.error("❌ Error al crear matrículas de prueba: {}", e.getMessage());
+                }
+
+        }
+
 }

@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.jeyix.school_jeyix.core.security.model.User;
 import com.jeyix.school_jeyix.features.enrollment.dto.enrollment.request.EnrollmentRequest;
 import com.jeyix.school_jeyix.features.enrollment.dto.enrollment.response.EnrollmentResponse;
 import com.jeyix.school_jeyix.features.enrollment.dto.enrollment.response.PaymentSummary;
@@ -16,6 +17,8 @@ import com.jeyix.school_jeyix.features.enrollment.enums.EnrollmentStatus;
 import com.jeyix.school_jeyix.features.enrollment.model.Enrollment;
 import com.jeyix.school_jeyix.features.enrollment.repository.EnrollmentRepository;
 import com.jeyix.school_jeyix.features.parent.dto.parent.response.StudentSummary;
+import com.jeyix.school_jeyix.features.parent.model.Parent;
+import com.jeyix.school_jeyix.features.parent.repository.ParentRepository;
 import com.jeyix.school_jeyix.features.payment.model.Payment;
 import com.jeyix.school_jeyix.features.student.model.Student;
 import com.jeyix.school_jeyix.features.student.repository.StudentRepository;
@@ -29,6 +32,33 @@ import lombok.RequiredArgsConstructor;
 public class EnrollmentService {
     private final EnrollmentRepository enrollmentRepository;
     private final StudentRepository studentRepository;
+    private final ParentRepository parentRepository;
+
+    public EnrollmentResponse findById(Long id) {
+        Enrollment enrollment = enrollmentRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Matrícula con ID " + id + " no encontrada."));
+        return toResponse(enrollment);
+    }
+
+    public List<EnrollmentResponse> findAll() {
+        return enrollmentRepository.findAll().stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<EnrollmentResponse> findAllByAuthenticatedParent(User user) {
+        String username = user.getUsername();
+
+        Parent parent = parentRepository.findByUser_Username(username)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("No se encontró un padre asociado al usuario: " + username));
+
+        List<Enrollment> enrollments = enrollmentRepository.findAllByStudent_Parent_Id(parent.getId());
+
+        return enrollments.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
 
     @Transactional
     public EnrollmentResponse create(EnrollmentRequest request) {
@@ -54,18 +84,6 @@ public class EnrollmentService {
         Enrollment savedEnrollment = enrollmentRepository.save(enrollment);
 
         return toResponse(savedEnrollment);
-    }
-
-    public EnrollmentResponse findById(Long id) {
-        Enrollment enrollment = enrollmentRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Matrícula con ID " + id + " no encontrada."));
-        return toResponse(enrollment);
-    }
-
-    public List<EnrollmentResponse> findAll() {
-        return enrollmentRepository.findAll().stream()
-                .map(this::toResponse)
-                .collect(Collectors.toList());
     }
 
     private List<Payment> generateInstallments(Enrollment enrollment, BigDecimal totalAmount,
