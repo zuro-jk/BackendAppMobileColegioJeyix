@@ -17,4 +17,5 @@ public class StudentResponse {
     private String section;
     private Long parentId;
     private String parentName;
+    private String profileImageUrl;
 }

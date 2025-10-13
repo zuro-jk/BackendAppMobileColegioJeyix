@@ -8,7 +8,7 @@ import java.time.Instant;
 @Data
 @AllArgsConstructor
 public class UserSessionResponse {
-    private String sessionId;
+    private Long sessionId;
     private Instant expiryDate;
     private String ip;
     private String userAgent;

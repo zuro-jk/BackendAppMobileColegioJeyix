@@ -64,6 +64,9 @@ public class User implements UserDetails {
     @Column(name = "profile_image_id")
     private Long profileImageId;
 
+    @Column(name = "device_token")
+    private String deviceToken;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserDocument> documents = new HashSet<>();
 

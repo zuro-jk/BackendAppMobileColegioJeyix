@@ -269,7 +269,7 @@ public class AuthService {
         return refreshTokenRepository.findAllByUser(user).stream()
                 .filter(rt -> !rt.getId().toString().equals(currentSessionId))
                 .map(rt -> new UserSessionResponse(
-                        rt.getId().toString(),
+                        rt.getId(),
                         rt.getExpiryDate(),
                         rt.getIp(),
                         rt.getUserAgent()))

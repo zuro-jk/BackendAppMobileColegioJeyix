@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ParentController {
 
-     private final ParentService parentService;
+    private final ParentService parentService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ParentResponse>>> getAll() {
@@ -42,13 +42,13 @@ public class ParentController {
     public ResponseEntity<ApiResponse<ParentResponse>> create(@Valid @RequestBody ParentRequest request) {
         ParentResponse createdParent = parentService.create(request);
         return new ResponseEntity<>(
-            new ApiResponse<>(true, "Padre creado exitosamente.", createdParent), 
-            HttpStatus.CREATED
-        );
+                new ApiResponse<>(true, "Padre creado exitosamente.", createdParent),
+                HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<ParentResponse>> update(@PathVariable Long id,
+    public ResponseEntity<ApiResponse<ParentResponse>> update(
+            @PathVariable Long id,
             @Valid @RequestBody ParentRequest request) {
         return ResponseEntity
                 .ok(new ApiResponse<>(true, "Padre actualizado exitosamente.", parentService.update(id, request)));

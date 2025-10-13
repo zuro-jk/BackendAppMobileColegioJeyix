@@ -1,11 +1,8 @@
 package com.jeyix.school_jeyix.core.exceptions;
 
-import com.jeyix.school_jeyix.core.aws.exception.AccessDeniedException;
-import com.jeyix.school_jeyix.core.aws.exception.FileNotFoundException;
-import com.jeyix.school_jeyix.core.aws.exception.FileUploadException;
-import com.jeyix.school_jeyix.core.security.dto.ApiResponse;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.OptimisticLockException;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +14,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.jeyix.school_jeyix.core.aws.exception.AccessDeniedException;
+import com.jeyix.school_jeyix.core.aws.exception.FileNotFoundException;
+import com.jeyix.school_jeyix.core.aws.exception.FileUploadException;
+import com.jeyix.school_jeyix.core.security.dto.ApiResponse;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.OptimisticLockException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -30,7 +32,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(OAuth2AuthenticationException.class)
     public ResponseEntity<ApiResponse<Object>> handleOAuth2Exception(OAuth2AuthenticationException ex) {
-        ex.printStackTrace(); 
+        ex.printStackTrace();
         OAuth2Error error = ex.getError();
         String errorDescription = error.getDescription() != null ? error.getDescription() : error.getErrorCode();
         String message = "OAuth2 Authentication failed: " + errorDescription;
@@ -118,7 +120,6 @@ public class GlobalExceptionHandler {
         return buildResponse("Ocurrió un error inesperado", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @ExceptionHandler({
             OptimisticLockException.class,
             OptimisticLockingFailureException.class
@@ -126,8 +127,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleOptimisticLock(RuntimeException ex) {
         return buildResponse(
                 "Conflicto de concurrencia: otro proceso modificó el recurso. Intente nuevamente.",
-                HttpStatus.CONFLICT
-        );
+                HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(InvalidPasswordException.class)

@@ -1,17 +1,22 @@
 package com.jeyix.school_jeyix.features.notifications.controller;
 
-import com.jeyix.school_jeyix.core.security.dto.ApiResponse;
-import com.jeyix.school_jeyix.core.security.model.User;
-import com.jeyix.school_jeyix.features.notifications.dto.ContactNotificationEvent;
-import com.jeyix.school_jeyix.features.notifications.kafka.NotificationProducer;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.jeyix.school_jeyix.core.security.dto.ApiResponse;
+import com.jeyix.school_jeyix.core.security.model.User;
+import com.jeyix.school_jeyix.features.notifications.dto.AnnouncementEvent;
+import com.jeyix.school_jeyix.features.notifications.dto.AnnouncementRequest;
+import com.jeyix.school_jeyix.features.notifications.dto.ContactNotificationEvent;
+import com.jeyix.school_jeyix.features.notifications.kafka.NotificationProducer;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/api/v1/notification")
@@ -23,8 +28,7 @@ public class NotificationController {
     @PostMapping
     public ResponseEntity<ApiResponse<String>> sendContact(
             @Valid @RequestBody ContactNotificationEvent contact,
-            @AuthenticationPrincipal User user
-    ) {
+            @AuthenticationPrincipal User user) {
         String senderName;
         String senderEmail;
         String senderPhone = contact.getPhone();
@@ -36,8 +40,7 @@ public class NotificationController {
         } else {
             if (contact.getName() == null || contact.getEmail() == null) {
                 return ResponseEntity.badRequest().body(
-                        new ApiResponse<>(false, "Nombre y email son obligatorios para usuarios anónimos", null)
-                );
+                        new ApiResponse<>(false, "Nombre y email son obligatorios para usuarios anónimos", null));
             }
             senderName = contact.getName();
             senderEmail = contact.getEmail();
@@ -58,7 +61,23 @@ public class NotificationController {
         // Enviar a Kafka
         notificationProducer.send("notifications", event);
 
-        return ResponseEntity.ok(new ApiResponse<>(true, "Mensaje enviado correctamente. Gracias por contactarnos!", null));
+        return ResponseEntity
+                .ok(new ApiResponse<>(true, "Mensaje enviado correctamente. Gracias por contactarnos!", null));
+    }
+
+    @PostMapping("/announcement")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> sendAnnouncement(@RequestBody AnnouncementRequest request) {
+
+        AnnouncementEvent event = AnnouncementEvent.builder()
+                .subject(request.getTitle())
+                .message(request.getBody())
+                .targetRoles(request.getTargetRoles())
+                .build();
+
+        notificationProducer.send("notifications", event);
+
+        return ResponseEntity.ok(new ApiResponse<>(true, "Anuncio enviado a la cola para su procesamiento.", null));
     }
 
     /**

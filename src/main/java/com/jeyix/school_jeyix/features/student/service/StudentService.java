@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.jeyix.school_jeyix.core.aws.service.FileService;
 import com.jeyix.school_jeyix.core.security.model.User;
 import com.jeyix.school_jeyix.core.security.repository.UserRepository;
 import com.jeyix.school_jeyix.features.parent.model.Parent;
@@ -25,6 +26,7 @@ public class StudentService {
     private final StudentRepository studentRepository;
     private final ParentRepository parentRepository;
     private final UserRepository userRepository;
+    private final FileService fileService;
 
     @Transactional
     public StudentResponse create(StudentRequest request) {
@@ -65,6 +67,15 @@ public class StudentService {
         return toResponse(student);
     }
 
+    @Transactional(readOnly = true)
+    public List<StudentResponse> getMyChildren(User user) {
+        Parent parent = parentRepository.findByUser_Username(user.getUsername())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "No se encontró un padre asociado al usuario: " + user.getUsername()));
+
+        return getByParent(parent.getId());
+    }
+
     @Transactional
     public StudentResponse update(Long id, StudentRequest request) {
         Student student = studentRepository.findById(id)
@@ -98,6 +109,12 @@ public class StudentService {
     }
 
     private StudentResponse toResponse(Student s) {
+
+        String profileImageUrl = null;
+        if (s.getUser().getProfileImageId() != null) {
+            profileImageUrl = fileService.getFileUrl(s.getUser().getProfileImageId());
+        }
+
         return StudentResponse.builder()
                 .id(s.getId())
                 .username(s.getUser().getUsername())
@@ -108,6 +125,7 @@ public class StudentService {
                 .parentName(s.getParent() != null
                         ? s.getParent().getUser().getFirstName() + " " + s.getParent().getUser().getLastName()
                         : null)
+                .profileImageUrl(profileImageUrl)
                 .build();
     }
 

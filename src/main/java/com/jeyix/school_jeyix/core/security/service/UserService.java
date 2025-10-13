@@ -1,12 +1,32 @@
 package com.jeyix.school_jeyix.core.security.service;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.jeyix.school_jeyix.core.aws.exception.AccessDeniedException;
 import com.jeyix.school_jeyix.core.aws.model.FileMetadata;
 import com.jeyix.school_jeyix.core.aws.service.FileService;
 import com.jeyix.school_jeyix.core.exceptions.EmailChangeNotAllowedException;
 import com.jeyix.school_jeyix.core.exceptions.InvalidPasswordException;
 import com.jeyix.school_jeyix.core.exceptions.UserNotFoundException;
 import com.jeyix.school_jeyix.core.exceptions.UsernameChangeNotAllowedException;
-import com.jeyix.school_jeyix.core.security.dto.*;
+import com.jeyix.school_jeyix.core.security.dto.ChanguePasswordRequest;
+import com.jeyix.school_jeyix.core.security.dto.UpdateProfileRequest;
+import com.jeyix.school_jeyix.core.security.dto.UpdateProfileResponse;
+import com.jeyix.school_jeyix.core.security.dto.UpdateUserRequest;
+import com.jeyix.school_jeyix.core.security.dto.UserProfileResponse;
+import com.jeyix.school_jeyix.core.security.dto.UserSessionResponse;
 import com.jeyix.school_jeyix.core.security.enums.AuthProvider;
 import com.jeyix.school_jeyix.core.security.jwt.JwtService;
 import com.jeyix.school_jeyix.core.security.model.RefreshToken;
@@ -15,17 +35,8 @@ import com.jeyix.school_jeyix.core.security.model.User;
 import com.jeyix.school_jeyix.core.security.repository.UserRepository;
 import com.jeyix.school_jeyix.features.notifications.dto.EmailVerificationEvent;
 import com.jeyix.school_jeyix.features.notifications.kafka.NotificationProducer;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -60,15 +71,13 @@ public class UserService {
             throw new AccessDeniedException("Acceso denegado: solo administradores");
         }
 
-        Set<String> excludedRoles = Set.of("ROLE_CLIENT", "ROLE_SUPPLIER");
-
-        List<User> users = userRepository.findAll().stream()
+        List<User> admins = userRepository.findAll().stream()
                 .filter(user -> user.getRoles().stream()
                         .map(Role::getName)
-                        .noneMatch(excludedRoles::contains))
+                        .anyMatch(role -> role.equals("ROLE_ADMIN")))
                 .collect(Collectors.toList());
 
-        return users.stream()
+        return admins.stream()
                 .map(u -> getUserByUsername(u.getUsername()))
                 .collect(Collectors.toList());
     }
@@ -101,6 +110,15 @@ public class UserService {
                 .profileImageUrl(
                         user.getProfileImageId() != null ? fileService.getFileUrl(user.getProfileImageId()) : null)
                 .build();
+    }
+
+    @Transactional
+    public void saveDeviceToken(User user, String token) {
+        User userFromDb = userRepository.findById(user.getId())
+                .orElseThrow(() -> new UserNotFoundException("Usuario no encontrado"));
+
+        userFromDb.setDeviceToken(token);
+        userRepository.save(userFromDb);
     }
 
     @Transactional
