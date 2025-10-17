@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.jeyix.school_jeyix.core.security.dto.ApiResponse;
 import com.jeyix.school_jeyix.features.parent.dto.parent.request.ParentRequest;
+import com.jeyix.school_jeyix.features.parent.dto.parent.response.ParentDetailResponse;
 import com.jeyix.school_jeyix.features.parent.dto.parent.response.ParentResponse;
 import com.jeyix.school_jeyix.features.parent.service.ParentService;
 
@@ -35,7 +36,13 @@ public class ParentController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ParentResponse>> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(new ApiResponse<>(true, "Padre encontrado.", parentService.findById(id)));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Padre encontrado", parentService.findById(id)));
+    }
+
+    @GetMapping("/{id}/details")
+    public ResponseEntity<ApiResponse<ParentDetailResponse>> getDetailsById(@PathVariable Long id) {
+        ParentDetailResponse response = parentService.findDetailsById(id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Detalles del padre obtenidos", response));
     }
 
     @PostMapping
